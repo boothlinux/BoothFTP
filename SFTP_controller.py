@@ -1,4 +1,4 @@
-#whipFTP, Copyrights Vishnu Shankar B,
+#BoothFTP
 
 import os
 from os import listdir
