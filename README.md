@@ -15,7 +15,7 @@ downloaded then simply type: `python BoothFTP.py`
 +  Clone the source, cd to the BoothFTP-master folder. In a new virtual environment type: `python -m pip install -r requirements_mac.txt` once the dependencies are downloaded then simply type: `python BoothFTP.py`
 
 #### Windows:
-+  Clone the source. Using cmd change to the BoothFTP-master directory. In a new virtual environment type: `python -m pip install -r requirements_windows.txt` once the dependencies are downloaded then run the `BoothFTP.py` file with Python.
++  Clone the source. Using cmd change to the BoothFTP-master directory. If building on Windows XP, change  `psutil` to `psutil==3.4.2` and `pypiwin32` to `pypiwin32==2.1.9` in requirements.txt. In a new virtual environment type: `python -m pip install -r requirements_windows.txt` once the dependencies are downloaded then run the `BoothFTP.py` file with Python.
 
 # License:
 + MIT License. Do as you will.
