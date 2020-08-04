@@ -312,19 +312,19 @@ class app:
         self.status_label.bind('<Motion>', lambda event, arg = 'Statusbar.': self.update_status(event, arg)) 
 
         #Bind events for all buttons
-        self.connect_button.bind('<Motion>', lambda event, arg = 'Start connection.': self.update_status(event, arg)) 
-        self.upload_button.bind('<Motion>', lambda event, arg = 'Upload file(s) or folder(s).': self.update_status(event, arg)) 
-        self.download_button.bind('<Motion>', lambda event, arg = 'Save/Download file(s) or folder(s).': self.update_status(event, arg)) 
-        self.newfolder_button.bind('<Motion>', lambda event, arg = 'Create a new directory.': self.update_status(event, arg)) 
-        self.delete_button.bind('<Motion>', lambda event, arg = 'Delete.': self.update_status(event, arg)) 
-        self.properties_button.bind('<Motion>', lambda event, arg = 'Edit/View properties.': self.update_status(event, arg)) 
-        self.cut_button.bind('<Motion>', lambda event, arg = 'Cut.': self.update_status(event, arg)) 
-        self.copy_button.bind('<Motion>', lambda event, arg = 'Copy.': self.update_status(event, arg)) 
-        self.paste_button.bind('<Motion>', lambda event, arg = 'Paste.': self.update_status(event, arg)) 
-        self.search_button.bind('<Motion>', lambda event, arg = 'Find.': self.update_status(event, arg))
-        self.goto_button.bind('<Motion>', lambda event, arg = 'Goto.': self.update_status(event, arg)) 
-        self.up_button.bind('<Motion>', lambda event, arg = 'Go to parent directory.': self.update_status(event, arg)) 
-        self.info_button.bind('<Motion>', lambda event, arg = 'About/Info.': self.update_status(event, arg)) 
+        self.connect_button.bind('<Motion>', lambda event, arg = 'Connect': self.update_status(event, arg)) 
+        self.upload_button.bind('<Motion>', lambda event, arg = 'Upload files or folders': self.update_status(event, arg)) 
+        self.download_button.bind('<Motion>', lambda event, arg = 'Download files or folders': self.update_status(event, arg)) 
+        self.newfolder_button.bind('<Motion>', lambda event, arg = 'Create a new directory': self.update_status(event, arg)) 
+        self.delete_button.bind('<Motion>', lambda event, arg = 'Delete': self.update_status(event, arg)) 
+        self.properties_button.bind('<Motion>', lambda event, arg = 'Edit or view properties': self.update_status(event, arg)) 
+        self.cut_button.bind('<Motion>', lambda event, arg = 'Cut': self.update_status(event, arg)) 
+        self.copy_button.bind('<Motion>', lambda event, arg = 'Copy': self.update_status(event, arg)) 
+        self.paste_button.bind('<Motion>', lambda event, arg = 'Paste': self.update_status(event, arg)) 
+        self.search_button.bind('<Motion>', lambda event, arg = 'Find': self.update_status(event, arg))
+        self.goto_button.bind('<Motion>', lambda event, arg = 'Go to location': self.update_status(event, arg)) 
+        self.up_button.bind('<Motion>', lambda event, arg = 'Parent directory': self.update_status(event, arg)) 
+        self.info_button.bind('<Motion>', lambda event, arg = 'About': self.update_status(event, arg)) 
 
         #Bind events for all labels
         self.toolbar.bind('<Motion>', lambda event, arg = ' ': self.update_status(event, arg)) 
@@ -333,19 +333,34 @@ class app:
         self.label_port.bind('<Motion>', lambda event, arg = ' ': self.update_status(event, arg)) 
 
         #Bind events for all entries/text fields
-        self.hostname_entry.bind('<Motion>', lambda event, arg = 'Enter host address.': self.update_status(event, arg)) 
+        self.hostname_entry.bind('<Motion>', lambda event, arg = 'Enter host address': self.update_status(event, arg)) 
         self.type_combobox.bind('<Motion>', lambda event, arg = 'Select connection type': self.update_status(event, arg)) 
         self.type_combobox.bind('<Motion>', lambda event, arg = 'Select connection type': self.update_status(event, arg)) 
         self.type_combobox.bind('<<ComboboxSelected>>', self.handle_combobox)
-        self.usrname_entry.bind('<Motion>', lambda event, arg = 'Enter your username.': self.update_status(event, arg))
-        self.pass_entry.bind('<Motion>', lambda event, arg = 'Enter your password.': self.update_status(event, arg))
-        self.port_entry.bind('<Motion>', lambda event, arg = 'Enter port.': self.update_status(event, arg))
+        self.usrname_entry.bind('<Motion>', lambda event, arg = 'Enter your username': self.update_status(event, arg))
+        self.pass_entry.bind('<Motion>', lambda event, arg = 'Enter your password': self.update_status(event, arg))
+        self.port_entry.bind('<Motion>', lambda event, arg = 'Enter port number': self.update_status(event, arg))
 
         #Press enter key to connect
         self.hostname_entry.bind('<Return>', self.connect_to_ftp) 
         self.usrname_entry.bind('<Return>', self.connect_to_ftp)
         self.pass_entry.bind('<Return>', self.connect_to_ftp)
         self.port_entry.bind('<Return>', self.connect_to_ftp)  
+
+
+    def file_count(self, event):
+        self.update_status(event, 'Total number of items: ' + str(len(self.file_list)) + '   Selected: ' + str(len(self.selected_file_indices)))
+    
+    
+    def start_thread(self):
+        self.thread.daemon = True
+        self.thread.start()
+        self.process_thread_requests()
+
+
+    def directory_exception(self):
+        self.update_status_red('Unable to open directory, try reconnecting')
+        self.lock_status_bar()
 
 
     def handle_combobox(self, event):
@@ -376,9 +391,7 @@ class app:
         else: self.ftpController = sftp_controller()
         self.thread =  threading.Thread(target = self.connect_thread, args = (self.ftpController,
             self.hostname_entry.get(), self.usrname_entry.get(), self.pass_entry.get(), int(self.port_entry.get())))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
         
 
     def connect_thread(self, ftpController, host, usrname, passwd, port):
@@ -387,10 +400,10 @@ class app:
             thread_request_queue.put(lambda:self.unlock_status_bar())
             thread_request_queue.put(lambda:self.cont_wait())         
             thread_request_queue.put(lambda:self.update_file_list())
-            thread_request_queue.put(lambda:self.update_status(message = 'Connected.'))
+            thread_request_queue.put(lambda:self.update_status(message = 'Connected'))
         except:
             thread_request_queue.put(lambda:self.unlock_status_bar())
-            thread_request_queue.put(lambda:self.update_status_red('Unable to connect, please check what you have entered.'))
+            thread_request_queue.put(lambda:self.update_status_red('Unable to connect, please try again'))
             #Make sure unable to connect message stays on status bar
             thread_request_queue.put(lambda:self.lock_status_bar())
         #Need to focus on the main window and the entry due to a bug in ttk/tkinter (entries don't focis properly after creating and destroying windowless messagebox dialog)  
@@ -410,9 +423,7 @@ class app:
         del self.detailed_file_list[:]
         #start thread
         self.thread = threading.Thread(target = self.update_file_list_thread)
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
 
     def update_file_list_thread(self):
         try:
@@ -425,7 +436,7 @@ class app:
             thread_request_queue.put(lambda:self.update_status(''))
         except:
             thread_request_queue.put(lambda:self.unlock_status_bar())
-            thread_request_queue.put(lambda:self.update_status_red('Check your connection, cannot display file list'))
+            thread_request_queue.put(lambda:self.update_status_red('Check your connection, cannot display directory'))
             thread_request_queue.put(lambda:self.lock_status_bar())
         thread_request_queue.put(lambda:self.draw_icons())
         #Enable toolbar
@@ -499,13 +510,12 @@ class app:
         #Set status only if valid index, draw mouse-hover highlight rectangle
         if(self.current_file_index >= 0 and self.current_file_index < len(self.file_list) and self.mouse_x < self.max_width):
             self.update_status(event, self.detailed_file_list[self.current_file_index])
-            #Configure the rectangle created in draw_icons() to highlight the current folder mose== pointing at
+            #Configure the rectangle created in draw_icons() to highlight the current folder mouse pointing at
             self.canvas.itemconfig(self.rect_id, outline = 'black')
             self.canvas.coords(self.rect_id, self.x_cell_pos*self.cell_width+2, self.y_cell_pos*35+2, (self.x_cell_pos+1)*self.cell_width-1, (self.y_cell_pos+1)*35-1) 
         else:
             #Tell how many files are present and how many are selected in the status bar
-            self.update_status(event, 'Total no. of items: ' + str(len(self.file_list)) + '   Selected: ' + str(len(self.selected_file_indices)))
-            #Stop mouse-hover highlighting
+            self.file_count(event)            #Stop mouse-hover highlighting
             self.canvas.itemconfig(self.rect_id, outline = '')
             self.canvas.coords(self.rect_id, -1, -1, -1, -1)  
     
@@ -550,6 +560,7 @@ class app:
             return -1 
         self.canvas.yview_scroll(delta(event), 'units')
 
+
     def mouse_select(self, event):
         self.master.focus()
         #Store start position for drag select
@@ -564,7 +575,7 @@ class app:
             	                                                                               (self.x_cell_pos+1)*self.cell_width - 1, (self.y_cell_pos+1)*35 - 1, 
             	                                                                               fill = '', outline = 'Red')
         #Tell how many files are present and how many are selected in the status bar
-        self.update_status(event, 'Total no. of items: ' + str(len(self.file_list)) + '   Selected: ' + str(len(self.selected_file_indices)))
+        self.file_count(event)
 
     def ctrl_select(self, event):
         #Set selected only if valid index
@@ -582,8 +593,7 @@ class app:
                 #Redraw icons
                 self.draw_icons()  
         #Tell how many files are present and how many are selected in the status bar
-        self.update_status(event, 'Total no. of items: ' + str(len(self.file_list)) + '   Selected: ' + str(len(self.selected_file_indices)))
-
+        self.file_count(event)
     def drag_select(self, event):
         #Update to get current mouse position
         self.update_status_and_mouse(event)
@@ -612,7 +622,7 @@ class app:
                     self.selected_file_indices[file_index] = self.canvas.create_rectangle(i*self.cell_width+2, j*35+2, (i+1)*self.cell_width-1, (j+1)*35-1, fill = '',
                     outline = 'Red')
         #Tell how many files are present and how many are selected in the status bar
-        self.update_status(event, 'Total no. of items: ' + str(len(self.file_list)) + '   Selected: ' + str(len(self.selected_file_indices)))
+        self.file_count(event)
 
     def handle_dnd(self, action, actions, type, win, X, Y, x, y, data):
         #If there== another child window, disable dnd
@@ -646,8 +656,7 @@ class app:
                     self.ftpController.ftp.cwd(self.file_list[self.current_file_index])
                     self.update_file_list()       
                 except:
-                    self.update_status_red('Unable to open directory, try reconnecting.')
-                    self.lock_status_bar()
+                    self.directory_exception
 
     def goto_window_ask(self):
         self.goto_window = Filedialogs.name_dialog(self.master, 'Goto', self.goto_path, self.goto_icon, 'Enter path:')
@@ -662,8 +671,7 @@ class app:
             self.ftpController.ftp.cwd(path)
             self.update_file_list()       
         except:
-            self.update_status_red('Unable to open directory, try reconnecting.')
-            self.lock_status_bar()       
+            self.directory_exception()      
 
 
 
@@ -677,8 +685,7 @@ class app:
                 self.ftpController.ftp.cwd('..')
             self.update_file_list()     
         except:
-            self.update_status_red('Unable to open parent directory, try reconnecting.')
-            self.lock_status_bar()
+            self.directory_exception()
 
 
 
@@ -714,9 +721,7 @@ class app:
         self.start_wait()
         #start thread
         self.thread =  threading.Thread(target = self.rename_file, args = (self.ftpController, self.file_list, self.detailed_file_list, self.selected_file_indices, rename_name))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
 
     def rename_file(self, ftpController, file_list, detailed_file_list, selected_file_indices, rename_name):
         try:
@@ -749,9 +754,7 @@ class app:
         self.start_wait()
         #start thread
         self.thread = threading.Thread(target = self.change_permissions, args = (self.ftpController, self.file_list, self.selected_file_indices, octal_notation))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()          
+        self.start_thread()         
 
     def change_permissions(self, ftpController, file_list, selected_file_indices, octal_notation):
         try:
@@ -780,9 +783,7 @@ class app:
         #Show message box
         self.start_wait()
         #Start thread and process requests
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
 
     def create_dir(self, ftpController, dir_name):
         try:
@@ -809,9 +810,7 @@ class app:
         self.update_status('Uploading...')
         #start thread
         self.thread =  threading.Thread(target = self.upload, args = (self.ftpController, self.upload_dialog.file_list, self.upload_dialog.selected_file_indices))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
         
     def upload(self, ftpController, file_list, selected_file_indices):     
         #Thread safe progress function
@@ -842,9 +841,7 @@ class app:
         self.update_status('Uploading...')
         #start thread
         self.thread =  threading.Thread(target = self.upload_dnd, args = (self.ftpController, self.dnd_file_list))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
         
     def upload_dnd(self, ftpController, dnd_file_list):
         #Thread safe progress function
@@ -885,9 +882,7 @@ class app:
         self.update_status('Downloading...')
         #Create new thread for downloading
         self.thread =  threading.Thread(target = self.download, args = (self.ftpController, self.file_list, self.detailed_file_list, self.selected_file_indices))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
 
     def download(self, ftpController, file_list, detailed_file_list, selected_file_indices):                       
         #Thread safe progress function
@@ -984,9 +979,7 @@ class app:
         self.update_status('Deleting...')       
         #Start thread 
         self.thread = threading.Thread(target = self.delete_item, args = (self.ftpController, self.file_list, self.detailed_file_list, self.selected_file_indices))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
 
     def delete_item(self, ftpController, file_list, detailed_file_list, selected_file_indices):
         #Thread safe progress function
@@ -1053,9 +1046,7 @@ class app:
         #start thread
         self.thread =  threading.Thread(target = self.clipboard_paste, args = (self.ftpController, self.clipboard_path_list, self.clipboard_file_list,
                                         self.detailed_clipboard_file_list, self.cut, self.copy))
-        self.thread.daemon = True
-        self.thread.start()
-        self.process_thread_requests()
+        self.start_thread()
 
     def clipboard_paste(self, ftpController, clipboard_path_list, clipboard_file_list, detailed_clipboard_file_list, cut, copy):        
         #Set current status
